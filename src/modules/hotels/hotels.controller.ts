@@ -15,7 +15,6 @@ import { Roles } from '../user/guards/role.decorator';
 import { RolesGuard } from '../user/guards/role.guard';
 import { UserRole } from '../user/enums/roles.enum';
 import {
-  ApiBody,
   ApiOperation,
   ApiParam,
   ApiResponse,
@@ -80,6 +79,18 @@ export class HotelsController {
   @ApiResponse({ status: 404, description: 'Landlord not found' })
   async getLandlordHotels(@Req() req) {
     return this.hotelsService.getLandlordHotels(req.user.id);
+  }
+
+  @ApiOperation({ summary: 'Get all hotels for user' }) // Параметры запроса
+  @Get('/all')
+  async getAllHotels() {
+    return await this.hotelsService.getAll();
+  }
+
+  @ApiOperation({ summary: 'Get one hotel' }) // Параметры запроса
+  @Get('/one/:id')
+  async getOneHotel(@Param('id') id: string) {
+    return await this.hotelsService.getOne(+id);
   }
 
   @Get('files/:filename')

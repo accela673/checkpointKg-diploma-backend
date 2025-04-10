@@ -28,6 +28,12 @@ export class HotelEntity extends BaseEntity {
   @Column({ nullable: true })
   telegram: string;
 
+  @Column('simple-array', { nullable: true })
+  photos: string[];
+
+  @Column({ default: false })
+  isBooked: boolean;
+
   @ManyToOne(() => UserEntity, (user) => user.bookedHotels, { nullable: true })
   @JoinColumn({ name: 'bookedById' })
   bookedBy: UserEntity;
@@ -36,10 +42,4 @@ export class HotelEntity extends BaseEntity {
   @ManyToOne(() => UserEntity, (user) => user.ownedHotels)
   @JoinColumn({ name: 'landlordId' })
   landlord: UserEntity;
-
-  @Column('simple-array', { nullable: true })
-  photos: string[];
-
-  @Column({ default: false })
-  isBooked: boolean;
 }

@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { HotelEntity } from './entities/hotel.entity';
@@ -56,6 +52,20 @@ export class HotelsService extends BaseService<HotelEntity> {
     return this.hotelRepository.find({
       where: { id: landlordId },
     });
+  }
+
+  async getAll() {
+    const hotels = await this.hotelRepository.find({
+      where: { isBooked: false },
+    });
+    return hotels;
+  }
+
+  async getOne(id: number) {
+    const hotel = await this.hotelRepository.findOne({
+      where: { id: id },
+    });
+    return hotel;
   }
 
   // Метод для бронирования отеля

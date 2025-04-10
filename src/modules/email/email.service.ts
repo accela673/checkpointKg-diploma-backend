@@ -32,7 +32,7 @@ export class EmailService {
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: data.email,
-      subject: 'Ala-Too Academic Journal password chaning',
+      subject: 'Checkpoint.kg password chaning',
       html: `
         <html>
           <body style="font-family: Arial, sans-serif; color: #555; text-align: center;">
@@ -64,7 +64,7 @@ export class EmailService {
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: data.email,
-      subject: 'Ala-Too Academic Journal User',
+      subject: 'Checkpoint.kg User',
       html: `
         <html>
           <body style="font-family: Arial, sans-serif; color: #555; text-align: center;">
@@ -96,7 +96,7 @@ export class EmailService {
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: data.email,
-      subject: 'Ala-Too Academic Journal Admin',
+      subject: 'Checkpoint.kg Admin',
       html: `
         <html>
           <body style="font-family: Arial, sans-serif; color: #555; text-align: center;">

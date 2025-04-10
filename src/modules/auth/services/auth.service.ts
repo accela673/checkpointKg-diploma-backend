@@ -14,6 +14,7 @@ export class AuthService {
   generateToken(user: UserEntity) {
     const payload = { sub: user.id, email: user.email, role: user.role };
     return {
+      role: user.role,
       access_token: this.jwtService.sign(payload),
     };
   }
