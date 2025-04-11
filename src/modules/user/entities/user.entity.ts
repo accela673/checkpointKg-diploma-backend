@@ -3,6 +3,7 @@ import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import { UserRole } from '../enums/roles.enum';
 import { LangRole } from '../enums/lang.enum';
 import { HotelEntity } from 'src/modules/hotels/entities/hotel.entity';
+import { RoomEntity } from 'src/modules/rooms/entities/rooms.entity';
 
 @Entity()
 export class UserEntity extends BaseEntity {
@@ -41,8 +42,11 @@ export class UserEntity extends BaseEntity {
   })
   language: LangRole;
 
-  @OneToMany(() => HotelEntity, (hotel) => hotel.bookedBy, { nullable: true })
-  bookedHotels: HotelEntity[];
+  @OneToMany(() => RoomEntity, (room) => room.bookedBy, {
+    nullable: true,
+    cascade: true,
+  })
+  bookedRooms: RoomEntity[];
 
   // Поле для отелей, принадлежащих арендодателю
   @OneToMany(() => HotelEntity, (hotel) => hotel.landlord)

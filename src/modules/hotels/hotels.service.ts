@@ -16,6 +16,12 @@ export class HotelsService extends BaseService<HotelEntity> {
     super(hotelRepository);
   }
 
+  async saveHotel(hotel) {
+    if (hotel) {
+      return await this.hotelRepository.save(hotel);
+    }
+  }
+
   // Метод для добавления гостиницы
   async addHotel(
     landlordId: number, // ID арендодателя из токена
@@ -31,7 +37,6 @@ export class HotelsService extends BaseService<HotelEntity> {
     // Создание нового отеля
     const hotel = new HotelEntity();
     hotel.name = hotelData.name;
-    hotel.rooms = +hotelData.rooms;
     hotel.description = hotelData.description;
     hotel.address = hotelData.address;
     hotel.twoGisURL = hotelData.twoGisURL;
@@ -50,42 +55,50 @@ export class HotelsService extends BaseService<HotelEntity> {
   // Метод для получения всех отелей арендодателя
   async getLandlordHotels(landlordId: number): Promise<HotelEntity[]> {
     return this.hotelRepository.find({
-      where: { id: landlordId },
+      where: { landlord: { id: landlordId } },
     });
   }
 
   async getAll() {
     const hotels = await this.hotelRepository.find({
-      where: { isBooked: false },
+      relations: ['rooms', 'rooms.bookedBy'],
     });
-    return hotels;
+
+    const availableHotels = hotels
+      .map((hotel) => {
+        const availableRooms = hotel.rooms.filter((room) => !room.bookedBy);
+        if (availableRooms.length > 0) {
+          return {
+            ...hotel,
+            availableRoomsCount: availableRooms.length,
+            rooms: hotel.rooms, // если хочешь можно заменить на availableRooms
+          };
+        }
+        return null;
+      })
+      .filter((hotel) => hotel !== null);
+
+    return availableHotels;
   }
 
   async getOne(id: number) {
     const hotel = await this.hotelRepository.findOne({
-      where: { id: id },
+      where: { id },
+      relations: ['rooms', 'rooms.bookedBy', 'landlord'],
     });
-    return hotel;
-  }
 
-  // Метод для бронирования отеля
-  async bookHotel(hotelId: number, clientId: number): Promise<HotelEntity> {
-    const hotel = await this.hotelRepository.findOne({
-      where: { id: hotelId },
-    });
     if (!hotel) {
       throw new BadRequestException('Hotel not found');
     }
 
-    if (hotel.isBooked) {
-      throw new BadRequestException('Hotel is already booked');
-    }
+    const availableRooms = hotel.rooms.filter((room) => !room.bookedBy);
 
-    hotel.isBooked = true;
-    hotel.bookedBy = await this.userService.findById(clientId); // Добавляем ID клиента, который забронировал
-    await this.hotelRepository.save(hotel);
+    const res = {
+      ...hotel,
+      availableRoomsCount: availableRooms.length,
+    };
 
-    return hotel;
+    return res;
   }
 
   async getAvailableHotels() {

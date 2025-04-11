@@ -1,14 +1,12 @@
 import { BaseEntity } from 'src/base/base.entity';
-import { Column, Entity, ManyToOne, JoinColumn } from 'typeorm';
+import { Column, Entity, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { UserEntity } from 'src/modules/user/entities/user.entity';
+import { RoomEntity } from 'src/modules/rooms/entities/rooms.entity';
 
 @Entity()
 export class HotelEntity extends BaseEntity {
   @Column()
   name: string;
-
-  @Column()
-  rooms: number;
 
   @Column()
   description: string;
@@ -34,12 +32,16 @@ export class HotelEntity extends BaseEntity {
   @Column({ default: false })
   isBooked: boolean;
 
-  @ManyToOne(() => UserEntity, (user) => user.bookedHotels, { nullable: true })
-  @JoinColumn({ name: 'bookedById' })
-  bookedBy: UserEntity;
+  @OneToMany(() => RoomEntity, (room) => room.hotel, {
+    nullable: true,
+    cascade: true,
+  })
+  rooms: RoomEntity[];
 
-  // Связь с арендодателем, который владеет отелем
-  @ManyToOne(() => UserEntity, (user) => user.ownedHotels)
+  @ManyToOne(() => UserEntity, (user) => user.ownedHotels, {
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  })
   @JoinColumn({ name: 'landlordId' })
   landlord: UserEntity;
 }

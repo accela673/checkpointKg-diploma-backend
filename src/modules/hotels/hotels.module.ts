@@ -10,5 +10,6 @@ import { FileModule } from '../file/file.module';
   imports: [TypeOrmModule.forFeature([HotelEntity]), UserModule, FileModule],
   controllers: [HotelsController],
   providers: [HotelsService],
+  exports: [HotelsService],
 })
 export class HotelsModule {}
