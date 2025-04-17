@@ -67,6 +67,15 @@ export class RoomsController {
     return this.roomsService.getAllRooms();
   }
 
+  @ApiOperation({ summary: 'Get all rooms' }) // Параметры запроса
+  @Get('all/my')
+  @ApiBearerAuth()
+  @Roles(UserRole.CLIENT)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  async getAllMyRooms(@Req() req) {
+    return this.roomsService.getAllMyRooms(+req.user.id);
+  }
+
   @ApiOperation({ summary: 'Get one room' }) // Параметры запроса
   @Get(':id')
   async getRoomById(@Param('id') id: number): Promise<RoomEntity> {

@@ -51,6 +51,12 @@ export class RoomsService extends BaseService<RoomEntity> {
       relations: ['hotel', 'bookedBy'], // Загружаем связанные отели и пользователей, которые забронировали комнаты
     });
   }
+  async getAllMyRooms(userId: number) {
+    return this.roomRepository.find({
+      relations: ['hotel', 'bookedBy'],
+      where: { bookedBy: { id: userId } },
+    });
+  }
 
   // Метод для получения одной комнаты по ID
   async getRoomById(id: number) {

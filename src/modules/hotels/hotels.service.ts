@@ -61,24 +61,25 @@ export class HotelsService extends BaseService<HotelEntity> {
 
   async getAll() {
     const hotels = await this.hotelRepository.find({
-      relations: ['rooms', 'rooms.bookedBy'],
+      relations: ['rooms', 'rooms.bookedBy', 'landlord'],
     });
 
-    const availableHotels = hotels
-      .map((hotel) => {
-        const availableRooms = hotel.rooms.filter((room) => !room.bookedBy);
-        if (availableRooms.length > 0) {
-          return {
-            ...hotel,
-            availableRoomsCount: availableRooms.length,
-            rooms: hotel.rooms, // если хочешь можно заменить на availableRooms
-          };
-        }
-        return null;
-      })
-      .filter((hotel) => hotel !== null);
-
-    return availableHotels;
+    if (hotels) {
+      const availableHotels = hotels
+        .map((hotel) => {
+          const availableRooms = hotel.rooms.filter((room) => !room.bookedBy);
+          if (availableRooms.length > 0) {
+            return {
+              ...hotel,
+              availableRoomsCount: availableRooms.length,
+              rooms: hotel.rooms, // если хочешь можно заменить на availableRooms
+            };
+          }
+          return null;
+        })
+        .filter((hotel) => hotel !== null);
+      return availableHotels;
+    }
   }
 
   async getOne(id: number) {
