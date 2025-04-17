@@ -27,7 +27,10 @@ export class UserService extends BaseService<UserEntity> {
   }
 
   async findOneByid(id: number) {
-    return await this.userRepository.findOne({ where: { id: id } });
+    return await this.userRepository.findOne({
+      where: { id: id },
+      relations: ['bookedRooms', 'ownedHotels'],
+    });
   }
 
   async findOneUser(email: string) {
@@ -149,7 +152,7 @@ export class UserService extends BaseService<UserEntity> {
   async findLandlord(id: number) {
     const user = this.userRepository.findOne({
       where: { id: id, role: UserRole.LANDLORD },
-      relations: ['ownedHotels'],
+      relations: ['ownedHotels', 'ownedHotels.rooms'],
     });
     if (!user) {
       throw new BadRequestException('USer not found');
@@ -159,7 +162,7 @@ export class UserService extends BaseService<UserEntity> {
   async findById(id: number) {
     const user = this.userRepository.findOne({
       where: { id: id },
-      relations: [],
+      relations: ['bookedRooms', 'ownedHotels', 'ownedHotels.rooms'],
     });
     if (!user) {
       throw new BadRequestException('USer not found');
@@ -169,7 +172,7 @@ export class UserService extends BaseService<UserEntity> {
   async findClient(id: number) {
     const user = this.userRepository.findOne({
       where: { id: id, role: UserRole.CLIENT },
-      relations: ['bookedHotels'],
+      relations: ['bookedRooms'],
     });
     if (!user) {
       throw new BadRequestException('USer not found');

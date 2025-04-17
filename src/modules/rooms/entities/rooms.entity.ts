@@ -17,7 +17,7 @@ export class RoomEntity extends BaseEntity {
   @Column('simple-array', { nullable: true })
   photos: string[];
 
-  @Column({ default: false })
+  @Column({ nullable: true })
   isBooked: boolean;
 
   @ManyToOne(() => UserEntity, (user) => user.bookedRooms, {

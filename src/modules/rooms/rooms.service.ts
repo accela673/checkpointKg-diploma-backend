@@ -6,6 +6,8 @@ import { Repository } from 'typeorm';
 import { UserService } from '../user/services/user.service';
 import { CreateRoomDto } from './dto/CreateRoomDto';
 import { HotelsService } from '../hotels/hotels.service';
+import { UserRole } from '../user/enums/roles.enum';
+import { UserEntity } from '../user/entities/user.entity';
 
 Injectable();
 export class RoomsService extends BaseService<RoomEntity> {
@@ -54,7 +56,7 @@ export class RoomsService extends BaseService<RoomEntity> {
   async getRoomById(id: number) {
     const room = await this.roomRepository.findOne({
       where: { id },
-      relations: ['hotel', 'bookedBy'], // Загружаем связанные данные
+      relations: ['hotel', 'bookedBy', 'hotel.landlord'], // Загружаем связанные данные
     });
     return room;
   }
@@ -84,5 +86,77 @@ export class RoomsService extends BaseService<RoomEntity> {
 
     await this.roomRepository.remove(room);
     return { message: 'Room successfully deleted' };
+  }
+
+  async bookRoom(id: number, userId: number) {
+    const room = await this.getRoomById(id);
+    await this.checkIfExcist(room, 'room', id);
+
+    if (!room.isBooked) {
+      const user = await this.userService.findById(userId);
+      await this.checkIfExcist(user, 'user', userId);
+
+      room.bookedBy = user;
+      room.isBooked = true;
+      await this.roomRepository.save(room);
+
+      user.bookedRooms.push(room);
+      await this.userService.saveUser(user);
+      room.bookedBy = null;
+      return room;
+    }
+
+    throw new BadRequestException('Комната уже забронирована');
+  }
+
+  async releaseRoom(id: number, userId: number) {
+    const room = await this.getRoomById(id);
+    await this.checkIfExcist(room, 'room', id);
+
+    const user = await this.userService.findById(userId);
+    await this.checkIfExcist(user, 'user', userId);
+
+    let updatedRoom: RoomEntity;
+
+    if (user.role === UserRole.CLIENT) {
+      updatedRoom = await this.releaseAsClient(room, user);
+    } else if (user.role === UserRole.LANDLORD) {
+      updatedRoom = await this.releaseAsLandlord(room, user);
+    }
+
+    if (updatedRoom?.bookedBy) {
+      delete updatedRoom.bookedBy.bookedRooms;
+    }
+
+    return updatedRoom;
+  }
+
+  private async releaseAsClient(
+    room: RoomEntity,
+    user: UserEntity,
+  ): Promise<RoomEntity> {
+    if (room.bookedBy?.id === user.id) {
+      room.isBooked = false;
+      room.bookedBy = null;
+
+      user.bookedRooms = user.bookedRooms.filter(
+        (bookedRoom) => bookedRoom.id !== room.id,
+      );
+
+      await this.userService.saveUser(user);
+      return await this.roomRepository.save(room);
+    }
+  }
+
+  private async releaseAsLandlord(room: RoomEntity, user: UserEntity) {
+    for (let i = 0; i < user.ownedHotels.length; i++) {
+      for (let j = 0; j < user.ownedHotels[i].rooms.length; j++) {
+        if (user.id === room.hotel.landlord.id) {
+          room.isBooked = false;
+          room.bookedBy = null;
+          return await this.roomRepository.save(room);
+        }
+      }
+    }
   }
 }

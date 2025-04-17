@@ -61,19 +61,19 @@ export class RoomsController {
     );
   }
 
-  // Получение всех комнат
+  @ApiOperation({ summary: 'Get all rooms' }) // Параметры запроса
   @Get()
   async getAllRooms(): Promise<RoomEntity[]> {
     return this.roomsService.getAllRooms();
   }
 
-  // Получение одной комнаты по ID
+  @ApiOperation({ summary: 'Get one room' }) // Параметры запроса
   @Get(':id')
   async getRoomById(@Param('id') id: number): Promise<RoomEntity> {
     return this.roomsService.getRoomById(id);
   }
 
-  // Обновление комнаты
+  @ApiOperation({ summary: 'Update room' }) // Параметры запроса
   @Put(':id')
   async updateRoom(
     @Param('id') id: number,
@@ -82,9 +82,26 @@ export class RoomsController {
     return this.roomsService.updateRoom(id, updateRoomDto);
   }
 
-  // Удаление комнаты
+  @ApiOperation({ summary: 'Delete room' }) // Параметры запроса
   @Delete(':id')
   async deleteRoom(@Param('id') id: number): Promise<{ message: string }> {
     return this.roomsService.deleteRoom(id);
+  }
+
+  @ApiOperation({ summary: 'Book room' }) // Параметры запроса
+  @Put('book/one/:id')
+  @ApiBearerAuth()
+  @Roles(UserRole.CLIENT)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  async bookHotel(@Param('id') id: string, @Req() req) {
+    return await this.roomsService.bookRoom(+id, req.user.id);
+  }
+
+  @ApiOperation({ summary: 'Release room' }) // Параметры запроса
+  @Put('release/one/:id')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  async release(@Param('id') id: string, @Req() req) {
+    return await this.roomsService.releaseRoom(+id, req.user.id);
   }
 }

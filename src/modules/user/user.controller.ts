@@ -29,7 +29,7 @@ export class UserController {
   @ApiOperation({ summary: 'Get user profile' })
   @Get('get/profile')
   async getProfile(@Req() req) {
-    return await this.userService.get(+req.user.id);
+    return await this.userService.findOneByid(+req.user.id);
   }
 
   @ApiOperation({ summary: 'Get one user by id' })
