@@ -3,14 +3,21 @@ import {
   BadRequestException,
   NotFoundException,
 } from '@nestjs/common';
-import * as fs from 'fs';
-import * as mime from 'mime-types';
-import { v4 as uuidv4 } from 'uuid';
-import { extname, join } from 'path';
+import { v2 as cloudinary } from 'cloudinary';
 import { Response } from 'express';
+import * as mime from 'mime-types';
+import { Readable } from 'stream';
 
 @Injectable()
 export class FileService {
+  constructor() {
+    cloudinary.config({
+      cloud_name: process.env.CLOUD_NAME,
+      api_key: process.env.API_KEY,
+      api_secret: process.env.API_SECRET,
+    });
+  }
+
   async handleFileUpload(file: Express.Multer.File) {
     if (!file) {
       throw new BadRequestException('File not found');
@@ -23,38 +30,39 @@ export class FileService {
       );
     }
 
-    const uploadFolder = './uploads';
-    if (!fs.existsSync(uploadFolder)) {
-      fs.mkdirSync(uploadFolder);
-    }
-
-    const filename: string = uuidv4() + extname(file.originalname); // Генерация уникального имени для файла
-    const filePath = join(uploadFolder, filename);
-
-    await this.writeToDisk(file.buffer, filePath);
+    const result = await this.uploadToCloudinary(file);
     return {
-      url: `${process.env.BASE_URL}/hotels/files/${filename}`,
-      path: filePath,
-    }; // Возвращаем URL для доступа
+      url: result.secure_url,
+      publicId: result.public_id,
+    };
   }
 
-  private async writeToDisk(buffer: Buffer, filePath: string): Promise<void> {
-    const writeStream = fs.createWriteStream(filePath);
-    writeStream.write(buffer);
-    writeStream.end();
+  private async uploadToCloudinary(
+    file: Express.Multer.File,
+  ): Promise<{ secure_url: string; public_id: string }> {
+    return new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        { folder: 'uploads' },
+        (error, result) => {
+          if (error) return reject(error);
+          resolve(result as any);
+        },
+      );
+      Readable.from(file.buffer).pipe(stream);
+    });
   }
 
   async getFilePath(filename: string): Promise<string> {
-    const filePath = join(process.cwd(), 'uploads', filename);
-
-    if (!fs.existsSync(filePath)) {
-      throw new NotFoundException(`File ${filename} not found`);
-    }
-
-    return filePath;
+    // Cloudinary не даёт прямой доступ к пути файла по имени, нужен `publicId`
+    // Можно реализовать поиск по `publicId`, если ты его сохраняешь где-то
+    throw new NotFoundException(
+      'Direct file access not supported. Use URL or store publicId.',
+    );
   }
 
   async sendFile(res: Response, filePath: string) {
-    res.sendFile(filePath);
+    // Cloudinary сам обслуживает файлы по URL
+    // Можно редиректить или вернуть ссылку
+    res.redirect(filePath); // или просто отправь JSON с URL
   }
 }
