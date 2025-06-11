@@ -5,6 +5,7 @@ import { HotelEntity } from './entities/hotel.entity';
 import { BaseService } from 'src/base/base.service';
 import { UserService } from '../user/services/user.service';
 import { CreateHotelDto } from './dto/CreateHotel.dto';
+import { TypesOfHotel } from './enums/hotel.enum';
 
 @Injectable()
 export class HotelsService extends BaseService<HotelEntity> {
@@ -25,7 +26,8 @@ export class HotelsService extends BaseService<HotelEntity> {
   // Метод для добавления гостиницы
   async addHotel(
     landlordId: number, // ID арендодателя из токена
-    hotelData: CreateHotelDto, // Данные для создания отеля
+    hotelData: CreateHotelDto,
+    type: string, // Данные для создания отеля
     photos: string[], // URL-адреса фотографий
   ) {
     // Проверка на существование арендодателя (если нужно)
@@ -35,6 +37,7 @@ export class HotelsService extends BaseService<HotelEntity> {
     }
 
     // Создание нового отеля
+    const hotelType = this.stringToEnum(TypesOfHotel, type.toUpperCase());
     const hotel = new HotelEntity();
     hotel.name = hotelData.name;
     hotel.description = hotelData.description;
@@ -42,10 +45,10 @@ export class HotelsService extends BaseService<HotelEntity> {
     hotel.twoGisURL = hotelData.twoGisURL;
     hotel.googleMapsURL = hotelData.googleMapsURL;
     hotel.phoneNumber = hotelData.phoneNumber;
+    hotel.region = hotelData.region;
+    hotel.type = hotelType;
     hotel.telegram = hotelData.telegram;
-    hotel.photos = photos; // Привязываем фотографии
-
-    // Связываем отель с арендодателем
+    hotel.photos = photos;
     hotel.landlord = landlord;
 
     // Сохраняем отель в базе данных
@@ -57,6 +60,11 @@ export class HotelsService extends BaseService<HotelEntity> {
     return this.hotelRepository.find({
       where: { landlord: { id: landlordId } },
     });
+  }
+
+  stringToEnum<T>(enumObj: T, value: string): T[keyof T] | undefined {
+    const enumValue = Object.values(enumObj).find((v) => v === value);
+    return enumValue as T[keyof T] | undefined;
   }
 
   async getAll() {

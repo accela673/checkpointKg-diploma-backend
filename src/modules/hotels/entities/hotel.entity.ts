@@ -2,11 +2,22 @@ import { BaseEntity } from 'src/base/base.entity';
 import { Column, Entity, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
 import { UserEntity } from 'src/modules/user/entities/user.entity';
 import { RoomEntity } from 'src/modules/rooms/entities/rooms.entity';
+import { TypesOfHotel } from '../enums/hotel.enum';
 
 @Entity()
 export class HotelEntity extends BaseEntity {
   @Column()
   name: string;
+
+  @Column()
+  region: string;
+
+  @Column({
+    type: 'enum',
+    enum: TypesOfHotel,
+    default: TypesOfHotel.ANOTHER,
+  })
+  type: TypesOfHotel;
 
   @Column()
   description: string;

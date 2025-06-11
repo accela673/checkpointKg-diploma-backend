@@ -38,7 +38,7 @@ export class HotelsController {
   ) {}
 
   // Добавление отеля арендодателем
-  @Post()
+  @Post('/:type')
   @ApiBearerAuth()
   @Roles(UserRole.LANDLORD)
   @UseGuards(JwtAuthGuard, RolesGuard) // Защищаем эндпоинт с помощью JWT и роли
@@ -46,9 +46,10 @@ export class HotelsController {
   @ApiOperation({ summary: 'Add a new hotel' })
   @UseInterceptors(FileFieldsInterceptor([{ name: 'photos', maxCount: 10 }])) // Максимум 10 фото
   async addHotel(
-    @Body() hotelData: CreateHotelDto, // Параметры тела запроса
-    @UploadedFiles() files: { photos?: Express.Multer.File[] }, // Файлы, загруженные в поле photos
+    @Body() hotelData: CreateHotelDto,
+    @UploadedFiles() files: { photos?: Express.Multer.File[] },
     @Req() req,
+    @Param('type') type: string,
   ) {
     const photosUrls = [];
     if (files?.photos) {
@@ -62,7 +63,12 @@ export class HotelsController {
     // Добавляем фотографии в данные отеля
     hotelData.photos = photosUrls;
 
-    return this.hotelsService.addHotel(+req.user.id, hotelData, photosUrls);
+    return this.hotelsService.addHotel(
+      +req.user.id,
+      hotelData,
+      type,
+      photosUrls,
+    );
   }
 
   // Получение списка отелей арендодателя

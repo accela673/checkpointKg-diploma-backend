@@ -11,6 +11,9 @@ export class CreateHotelDto {
   name: string;
 
   @IsString()
+  region: string;
+
+  @IsString()
   description: string;
 
   @IsString()

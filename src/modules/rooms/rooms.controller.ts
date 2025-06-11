@@ -14,7 +14,12 @@ import {
 import { RoomsService } from './rooms.service';
 import { CreateRoomDto } from './dto/CreateRoomDto';
 import { RoomEntity } from './entities/rooms.entity';
-import { ApiBearerAuth, ApiConsumes, ApiOperation } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiConsumes,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { UserRole } from '../user/enums/roles.enum';
 import { Roles } from '../user/guards/role.decorator';
 import { JwtAuthGuard } from '../auth/jwt/jwt-auth.guard';
@@ -22,6 +27,7 @@ import { RolesGuard } from '../user/guards/role.guard';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { FileService } from '../file/file.service';
 
+@ApiTags('Rooms')
 @Controller('rooms')
 export class RoomsController {
   constructor(
@@ -67,7 +73,7 @@ export class RoomsController {
     return this.roomsService.getAllRooms();
   }
 
-  @ApiOperation({ summary: 'Get all rooms' }) // Параметры запроса
+  @ApiOperation({ summary: 'Get all my rooms' }) // Параметры запроса
   @Get('all/my')
   @ApiBearerAuth()
   @Roles(UserRole.CLIENT)
